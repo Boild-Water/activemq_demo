@@ -60,6 +60,17 @@ public class JmsConsumer {
                     TextMessage textMessage = (TextMessage) message;
                     try {
                         System.out.println("==========消费者接收到消息:" + textMessage.getText());
+                        //获取消息属性
+                        System.out.println("==========消费者接收到消息的属性是:" + textMessage.getStringProperty("hello"));
+                    }catch (JMSException e){
+                        e.printStackTrace();
+                    }
+                }
+                //不同消息体
+                if (null != message && message instanceof MapMessage) {
+                    MapMessage mapMessage = (MapMessage) message;
+                    try {
+                        System.out.println("==========消费者接收到消息:" + mapMessage.getString("k1"));
                     }catch (JMSException e){
                         e.printStackTrace();
                     }
