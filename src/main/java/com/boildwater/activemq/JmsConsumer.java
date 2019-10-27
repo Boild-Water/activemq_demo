@@ -29,23 +29,7 @@ public class JmsConsumer {
         //5.创建消息的消费者
         MessageConsumer messageConsumer = session.createConsumer(queue);
 
-//        /**
-//         * 同步阻塞方式接收(receive())
-//         *  订阅者或者接受者调用MessageConsumer的receive()方法来接收消息，
-//         *  receive方法在能够接收到消息之前(或者超时之前)将会一直阻塞
-//         */
-//        //6.消费消息
-//        while (true) {
-//            //7.接收生产者生产的消息，注意消息类型要与生产者生产的消息类型一致。
-////            TextMessage textMessage = (TextMessage) messageConsumer.receive();//如果没有接收到消息就会一直等在这
-//            TextMessage textMessage = (TextMessage) messageConsumer.receive(3000);//重载方法，3s超时接收
-//
-//            if (textMessage != null) {
-//                System.out.println("==========消费者接收到消息:" + textMessage.getText());
-//            }else {
-//                break;
-//            }
-//        }
+
 
         /**
          * 通过监听的方式来消费消息
@@ -60,17 +44,6 @@ public class JmsConsumer {
                     TextMessage textMessage = (TextMessage) message;
                     try {
                         System.out.println("==========消费者接收到消息:" + textMessage.getText());
-                        //获取消息属性
-                        System.out.println("==========消费者接收到消息的属性是:" + textMessage.getStringProperty("hello"));
-                    }catch (JMSException e){
-                        e.printStackTrace();
-                    }
-                }
-                //不同消息体
-                if (null != message && message instanceof MapMessage) {
-                    MapMessage mapMessage = (MapMessage) message;
-                    try {
-                        System.out.println("==========消费者接收到消息:" + mapMessage.getString("k1"));
                     }catch (JMSException e){
                         e.printStackTrace();
                     }
@@ -86,13 +59,5 @@ public class JmsConsumer {
         session.close();
         connection.close();
 
-        /**
-         * 生产消费的三种情况
-         *  1.先生产，启动消费者1
-         *  2.先生产，先启动消费者1，然后再启动消费者2
-         *      结果:消费者1会消费所有生产的消息
-         *  3.先启动消费者1，再启动消费者2，最后启动生产者生产6条消息
-         *      结果:消费者1和消费者2平分消费6条消息，即每个消费者消费3条消息 ("负载均衡")
-         */
     }
 }

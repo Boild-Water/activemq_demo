@@ -26,14 +26,26 @@ public class JmsProduce_topic {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(ACTIVEMQ_URL);
         //2.通过连接工厂获取连接
         Connection connection = factory.createConnection();
-        connection.start();
         //3.创建会话session
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         //4.创建目的地(目的地可以是Queue队列也可以是topic主题)
         Topic topic = session.createTopic(TOPIC_NAME);
         //5.创建消息的生产者
         MessageProducer messageProducer = session.createProducer(topic);
+
+        /**
+         * 对于topic的持久化而言，与Queue有些不同
+         *  对topic类型的目的地来说，正确启动方式是，先运行消费者，然后再启动生产者。基于这种情况下
+         *  如果先运行了消费者，然后将消费者关闭，然后再运行生产者，此时如果再启动消费者，问消费者能否消费消息？
+         *      如果配置了持久化，则再次启动的消费者能够消费消息。
+         *
+         *  这种情况下，可以举一个微信公众号的例子，只要我们之前关注过该公众号，哪怕我们微信退出，手机关机
+         *  在这期间，微信公众号，可能会推出一些订阅信息，只要当我们再打开手机，打开微信，那么就能收到这些订阅信息。
+         */
+        messageProducer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
         //6.通过使用messageProducer来生产3条消息，发送到MQ队列里
+        connection.start();
         for (int i = 1; i <= 3; i++) {
             //7.使用session创建消息
             TextMessage textMessage = session.createTextMessage("message " + i);

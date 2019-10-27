@@ -32,26 +32,20 @@ public class JmsProduce {
         Queue queue = session.createQueue(QUEUE_NAME);
         //5.创建消息的生产者
         MessageProducer messageProducer = session.createProducer(queue);
+
+        /**
+         * 设置消息是否被持久化，默认会持久化(对于队列而言)
+         * 如果设置了非持久化，那么当ActiveMQ宕机，再次启动后，没有消费的消息将会被丢弃。
+         */
+        messageProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+
         //6.通过使用messageProducer来生产3条消息，发送到MQ队列里
         for (int i = 1; i <= 3; i++) {
             //7.使用session创建消息
-            //创建TextMessage消息体
             TextMessage textMessage = session.createTextMessage("message " + i);
-            /**
-             * 同时还可以设置消息属性
-             *  消息属性的作用:
-             *      如果需要除消息头字段以外的值，那么可以使用消息属性
-             *      同时消息属性在识别/去重/重点标注等操作中是非常有用的方法
-             */
-            textMessage.setStringProperty("hello","activemq");
-
-            //创建MapMessage消息体 (一共有5种类型的消息体，但是常用的就是TextMessage和MapMessage消息体)
-            MapMessage mapMessage = session.createMapMessage();
-            mapMessage.setString("k1","v1");
 
             //8.通过messageProducer发送给MQ队列
             messageProducer.send(textMessage);
-            messageProducer.send(mapMessage);
 
         }
 

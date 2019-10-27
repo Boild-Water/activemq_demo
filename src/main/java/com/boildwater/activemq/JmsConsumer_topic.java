@@ -20,32 +20,26 @@ public class JmsConsumer_topic {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(ACTIVEMQ_URL);
         //2.通过连接工厂获取连接
         Connection connection = factory.createConnection();
-        connection.start();
+
+        connection.setClientID("z3");//订阅者的id，表示谁订阅了
+
         //3.创建会话session
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         //4.创建目的地(目的地可以是Queue队列也可以是topic主题)
         Topic topic = session.createTopic(TOPIC_NAME);
 
-        //5.创建消息的消费者
-        MessageConsumer messageConsumer = session.createConsumer(topic);
+        TopicSubscriber topicSubscriber = session.createDurableSubscriber(topic,"remark...");
 
-        messageConsumer.setMessageListener(new MessageListener() {
-            @Override
-            public void onMessage(Message message) {
-                if (null != message && message instanceof TextMessage) {
-                    TextMessage textMessage = (TextMessage) message;
-                    try {
-                        System.out.println("==========消费者接收到消息:" + textMessage.getText());
-                    }catch (JMSException e){
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        System.in.read();
+        connection.start();
+
+        Message message = topicSubscriber.receive();
+        while (message != null && message instanceof TextMessage) {
+            TextMessage textMessage = (TextMessage) message;
+            System.out.println("***********" + textMessage.getText());
+            message = topicSubscriber.receive(1000);
+        }
 
         //8.关闭资源
-        messageConsumer.close();
         session.close();
         connection.close();
 
