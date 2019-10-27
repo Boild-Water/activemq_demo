@@ -22,14 +22,33 @@ public class JmsConsumer {
         Connection connection = factory.createConnection();
         connection.start();
         //3.创建会话session
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        /**
+         * 对于消费者而言：
+         *  表示事务的参数也可以为false或者为true
+         *  与生产者相同的是，如果为true，也需要在消费者消费消息之后手动提交事务，
+         *  如果不提交，那么MQ中的消息将无法被消费成功，会一直保存在MQ中，会导致重复消费的问题
+         *
+         *  表示签收的属性:(签收的设置偏向于消费者)
+         *      AUTO_ACKNOWLEDGE:自动签收
+         *      CLIENT_ACKNOWLEDGE:手动签收 如果开启了手动签收，消费者需要手动签收消息，
+         *          否则无法消费消息，会导致重复消费的问题
+         *      DUPS_OK_ACKNOWLEDGE:允许重复消息
+         *
+         *  对于消费者来说，事务与签收还有一点需要注意：
+         *      如果事务为true，签收为CLIENT_ACKNOWLEDGE，
+         *          只要事务提交后(session.commit)，无论是否手动签收(textMessage.acknowledge)，都会签收成功
+         *      但是如果事务为true，签收为CLIENT_ACKNOWLEDGE，
+         *          仅仅手动签收，而没有手动提交，那么签收还是不能成功，还是会出现重复消费的问题
+         *
+         */
+        Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+
+
         //4.创建目的地(目的地可以是Queue队列也可以是topic主题)
         Queue queue = session.createQueue(QUEUE_NAME);
 
         //5.创建消息的消费者
         MessageConsumer messageConsumer = session.createConsumer(queue);
-
-
 
         /**
          * 通过监听的方式来消费消息
@@ -44,6 +63,10 @@ public class JmsConsumer {
                     TextMessage textMessage = (TextMessage) message;
                     try {
                         System.out.println("==========消费者接收到消息:" + textMessage.getText());
+
+                        //如果设置的是手动签收，那么此处需要下行代码，表示客户端手动签收消息
+                        textMessage.acknowledge();
+
                     }catch (JMSException e){
                         e.printStackTrace();
                     }
